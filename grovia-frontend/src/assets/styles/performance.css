@@ -1,0 +1,108 @@
+/**
+ * Performance Optimization CSS
+ * Mengoptimalkan rendering dan mengurangi reflow/repaint
+ */
+
+/* GPU Acceleration untuk animasi */
+@media (prefers-reduced-motion: no-preference) {
+  .page-enter-active,
+  .page-leave-active,
+  [class*="transition"],
+  [class*="animate"] {
+    will-change: transform, opacity;
+  }
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Contain paint untuk komponen besar */
+.container,
+[class*="section"],
+[class*="wrapper"] {
+  contain: layout;
+}
+
+/* Optimasi font rendering */
+body {
+  text-rendering: optimizeSpeed;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  text-rendering: optimizeLegibility;
+}
+
+/* Optimasi gambar */
+img {
+  max-width: 100%;
+  height: auto;
+  /* Lazy loading hint */
+  content-visibility: auto;
+}
+
+/* Prevent layout shift */
+img[width][height] {
+  height: auto;
+}
+
+/* Optimasi scroll */
+* {
+  /* Smooth scroll dengan performa baik */
+  scroll-behavior: smooth;
+}
+
+@supports (scroll-behavior: smooth) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Hardware acceleration untuk element yang sering berubah */
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* Prevent font flashing */
+@font-face {
+  font-display: swap;
+}
+
+/* Reduce compositing layers */
+.auth-branding,
+.auth-form-section {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Critical rendering path optimization */
+@media screen {
+  /* Force GPU for transitions */
+  .router-link-active,
+  [aria-current="page"] {
+    transform: translateZ(0);
+  }
+}
+
+/* Prevent unnecessary repaints */
+.fixed,
+.sticky,
+[position="fixed"],
+[position="sticky"] {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}

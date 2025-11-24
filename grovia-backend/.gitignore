@@ -1,0 +1,69 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.pyc
+
+# Database
+*.db
+*.sqlite
+
+# Environment
+.env
+.env.local
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
+
+# ML Models
+ml_models/*.h5
+ml_models/*.pt
+ml_models/*.onnx
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test & Debug
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+test_*.py
+*_test.py
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
+*.md.backup
+
+# Cleanup scripts (temporary)
+clean_*.py
+delete_*.py
+add_*.py
+show_*.py
+
+# Datasets (if large)
+datasets/raw/*
+datasets/processed/*
+!datasets/.gitkeep
+
+venv/
