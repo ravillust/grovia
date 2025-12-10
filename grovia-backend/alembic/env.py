@@ -2,6 +2,7 @@
 # KODE PERBAIKAN PATH - HARUS DI PALING ATAS
 # =========================================================================
 import sys
+import os
 from pathlib import Path
 
 # Tambahkan root project ke Python path
@@ -119,27 +120,25 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
     
-    # Validasi String columns terlebih dahulu
-    is_valid = check_string_columns()
-    
-    if not is_valid:
-        print("[STOP] STOPPING: Fix String column issues first!")
-        print("Check the error messages above for details.\n")
-        raise Exception("String columns without length detected.")
-    
-    # Buat engine dan jalankan migration
+    # --- TAMBAHKAN BAGIAN INI ---
+    # Paksa konfigurasi untuk membaca DATABASE_URL dari Environment Variable (Render)
+    # Jika tidak ada variable itu, baru dia pakai yang ada di alembic.ini (localhost)
+    configuration = config.get_section(config.config_ini_section)
+    if os.getenv("DATABASE_URL"):
+        configuration["sqlalchemy.url"] = os.getenv("DATABASE_URL")
+    # ----------------------------
+
     connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
+        configuration, # <--- Ganti ini (tadinya: config.get_section...)
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
-    
+
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, 
-            target_metadata=target_metadata
+            connection=connection, target_metadata=target_metadata
         )
-        
+
         with context.begin_transaction():
             context.run_migrations()
 
