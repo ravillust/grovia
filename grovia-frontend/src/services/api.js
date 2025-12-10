@@ -1,7 +1,12 @@
 import axios from 'axios';
 
+let baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+if (baseUrl && !baseUrl.endsWith('/api/v1')) {
+  baseUrl = baseUrl.replace(/\/$/, '') + '/api/v1';
+}
+
 // Base URL untuk FastAPI backend
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+const API_BASE_URL = baseUrl;
 
 // Timeout untuk API biasa: 10 detik
 const API_TIMEOUT = 10000;
