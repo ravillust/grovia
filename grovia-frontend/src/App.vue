@@ -54,13 +54,13 @@ const globalLoading = ref(false);
 // Computed properties to conditionally show header/footer
 const showHeader = computed(() => {
   // Hide header on specific routes like login, register
-  const hideOnRoutes = ['login', 'register'];
+  const hideOnRoutes = ['login', 'register', 'verify-email'];
   return !hideOnRoutes.includes(route.name);
 });
 
 const showFooter = computed(() => {
   // Hide footer on specific routes
-  const hideOnRoutes = ['login', 'register'];
+  const hideOnRoutes = ['login', 'register', 'verify-email'];
   return !hideOnRoutes.includes(route.name);
 });
 

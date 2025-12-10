@@ -1,3 +1,4 @@
+
 import { createRouter, createWebHistory } from 'vue-router';
 
 const router = createRouter({
@@ -47,6 +48,16 @@ const router = createRouter({
       component: () => import('@/views/RegisterView.vue'),
       meta: {
         title: 'Daftar - Grovia',
+        requiresAuth: false,
+        hideForAuth: true,
+      },
+    },
+    {
+      path: '/verify-email',
+      name: 'verify-email',
+      component: () => import('@/views/VerifyEmailView.vue'),
+      meta: {
+        title: 'Verifikasi Email - Grovia',
         requiresAuth: false,
         hideForAuth: true,
       },

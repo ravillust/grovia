@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, detection, history, knowledge
+from app.api.v1.endpoints import auth, detection, history
 
 api_router = APIRouter()
 
@@ -7,7 +7,7 @@ api_router = APIRouter()
 async def health_check_v1():
     return {
         "status": "healthy",
-        "message": "Grovia API + ML Detection Ready! 🧠🚀"
+        "message": "Grovia API + ML Detection Ready!"
     }
 
 api_router.include_router(
@@ -26,10 +26,4 @@ api_router.include_router(
     history.router,
     prefix="/history",
     tags=["History"]
-)
-
-api_router.include_router(
-    knowledge.router,
-    prefix="/knowledge",
-    tags=["Knowledge Base"]
 )

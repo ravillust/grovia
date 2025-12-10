@@ -1,8 +1,33 @@
-# GROVIA - Plant Disease Detection System
+# Grovia - Plant Disease Detection System
 
-Aplikasi deteksi penyakit tanaman menggunakan AI (Gemini Vision API) dengan frontend Vue.js dan backend FastAPI.
+A modern web application for detecting plant diseases using AI-powered image analysis. Built with Vue.js frontend and FastAPI backend, featuring Google Gemini Vision API for accurate disease identification.
 
-## Struktur Proyek
+## Features
+
+- **AI-Powered Detection**: Accurate plant disease identification using Google Gemini Vision API
+- **Leaf Validation**: Pre-filters non-plant images to ensure valid inputs
+- **User Authentication**: Secure JWT-based authentication with Google OAuth support
+- **Detection History**: Track and review past disease detections
+- **Cloud Storage**: Image storage via Cloudinary
+- **Responsive Design**: Mobile-friendly interface
+
+## Tech Stack
+
+**Frontend:**
+- Vue.js 3 with Composition API
+- Vite for fast development
+- Pinia for state management
+- Vue Router for navigation
+
+**Backend:**
+- FastAPI (Python 3.11+)
+- SQLAlchemy ORM
+- MySQL/MariaDB database
+- Alembic for migrations
+- Google Gemini AI
+- OpenCV for image validation
+
+## Project Structure
 
 ```
 grovia/
@@ -11,104 +36,246 @@ grovia/
 └── README.md           # File ini
 ```
 
-## Quick Start
+## Prerequisites
 
-### 1. First Time Setup
+- Python 3.11 or higher
+- Node.js 18 or higher
+- MySQL/MariaDB 10.4+
+- Git
 
-Install dependencies secara manual:
+## Installation
 
-**Backend:**
-```cmd
+### 1. Clone Repository
+
+```bash
+git clone https://github.com/ravillust/grovia.git
+cd grovia
+```
+
+### 2. Backend Setup
+
+```bash
 cd grovia-backend
+
+# Create virtual environment
 python -m venv venv
-venv\Scripts\activate.bat
+
+# Activate virtual environment
+# Windows:
+venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Create .env file (see Configuration section)
+cp .env.example .env
+
+# Run database migrations
+alembic upgrade head
 ```
 
-**Frontend:**
-```cmd
+### 3. Frontend Setup
+
+```bash
 cd grovia-frontend
+
+# Install dependencies
 npm install
+
+# Create .env file
+cp .env.example .env
 ```
 
-### 2. Pastikan Database Running
+### 4. Database Setup
 
-Gunakan Laragon atau XAMPP:
-- Start MySQL/MariaDB service
-- Buat database baru bernama `grovia_db`:
+Create a MySQL database:
 
 ```sql
 CREATE DATABASE grovia_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-### 3. Jalankan Development Server
+## Configuration
 
-**Terminal 1 - Backend:**
-```cmd
-cd grovia-backend
-venv\Scripts\activate.bat
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
+### Backend Environment Variables
 
-**Terminal 2 - Frontend:**
-```cmd
-cd grovia-frontend
-npm run dev
-```
-
-Server akan berjalan di:
-- Backend: http://localhost:8000
-- Frontend: http://localhost:5173
-
-## Konfigurasi
-
-### Backend (.env)
-
-File: `grovia-backend/.env`
+Create `.env` in `grovia-backend/` directory:
 
 ```env
-# Database
-DATABASE_URL=mysql+pymysql://root@localhost:3306/grovia_db
+# Database Configuration
+DATABASE_URL=mysql+pymysql://root:password@localhost:3306/grovia_db
 
 # Security
-SECRET_KEY=your-secret-key-here
+SECRET_KEY=your-secret-key-min-32-characters
+ACCESS_TOKEN_EXPIRE_MINUTES=30
 
-# Gemini AI
+# Google Gemini AI
 GEMINI_API_KEY=your-gemini-api-key
 
-# Cloudinary (Optional)
+# Email Configuration (for password reset)
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+MAIL_FROM=your-email@gmail.com
+MAIL_SERVER=smtp.gmail.com
+MAIL_PORT=587
+
+# Google OAuth (optional)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# Cloud Storage (optional)
 CLOUDINARY_CLOUD_NAME=your-cloud-name
 CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
 USE_CLOUDINARY=true
 ```
 
-### Frontend (.env)
+**Get API Keys:**
+- Gemini AI: https://makersuite.google.com/app/apikey
+- Google OAuth: https://console.cloud.google.com/
+- Cloudinary: https://cloudinary.com/
 
-File: `grovia-frontend/.env`
+### Frontend Environment Variables
+
+Create `.env` in `grovia-frontend/` directory:
 
 ```env
 VITE_API_URL=http://localhost:8000/api/v1
+VITE_GOOGLE_CLIENT_ID=your-google-client-id
+```
+
+## Running the Application
+
+### Development Mode
+
+**Terminal 1 - Backend:**
+```bash
+cd grovia-backend
+source venv/bin/activate  # or venv\Scripts\activate on Windows
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+**Terminal 2 - Frontend:**
+```bash
+cd grovia-frontend
+npm run dev
+```
+
+Access the application:
+- Frontend: http://localhost:5173
+- Backend API: http://localhost:8000
+- API Documentation: http://localhost:8000/docs
+
+### Production Build
+
+**Backend:**
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+```
+
+**Frontend:**
+```bash
+npm run build
+# Deploy dist/ folder to hosting service
 ```
 
 ## API Documentation
 
-Setelah backend berjalan, akses dokumentasi interaktif:
+After starting the backend server:
 
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
-- Health Check: http://localhost:8000/api/v1/health-check
+- **Swagger UI**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+- **Health Check**: http://localhost:8000/api/v1/health-check
 
-## Fitur Utama
+## Database Schema
 
-### Backend
-- Authentication (JWT-based)
-- Plant Disease Detection dengan Gemini AI
-- Leaf Image Validator
-- RAG Knowledge Base (10 penyakit tanaman)
-- Detection History
-- Cloudinary Integration (image storage)
-- MySQL Database
+The application uses two main tables:
+
+### Users Table
+- Authentication and user profile management
+- Google OAuth integration support
+- Email verification and password reset tokens
+
+### Detection History Table
+- Stores plant disease detection results
+- Links to user accounts
+- Includes image URLs and AI predictions
+
+## Development
+
+### Code Structure
+
+```
+grovia-backend/
+├── app/
+│   ├── api/          # API endpoints
+│   ├── core/         # Core configuration and security
+│   ├── crud/         # Database operations
+│   ├── ml/           # Machine learning models
+│   ├── models/       # SQLAlchemy models
+│   ├── schemas/      # Pydantic schemas
+│   └── utils/        # Utility functions
+├── alembic/          # Database migrations
+└── uploads/          # Temporary file storage
+
+grovia-frontend/
+├── src/
+│   ├── components/   # Vue components
+│   ├── views/        # Page views
+│   ├── router/       # Vue Router configuration
+│   ├── stores/       # Pinia state management
+│   └── services/     # API service layer
+└── public/           # Static assets
+```
+
+### Running Tests
+
+```bash
+# Backend tests
+cd grovia-backend
+pytest
+
+# Frontend tests (if available)
+cd grovia-frontend
+npm run test
+```
+
+## Troubleshooting
+
+### Database Connection Issues
+- Ensure MySQL/MariaDB is running
+- Verify DATABASE_URL in .env
+- Check database user permissions
+
+### Gemini API Errors
+- Verify GEMINI_API_KEY is correct
+- Check API quota limits at Google AI Studio
+- Ensure internet connection is stable
+
+### Image Upload Failures
+- If using Cloudinary, verify credentials
+- Check file size limits (default: 10MB)
+- Ensure UPLOAD_DIR has write permissions
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License.
+
+## Acknowledgments
+
+- Google Gemini AI for disease detection
+- FastAPI framework
+- Vue.js framework
+- OpenCV for image processing
 
 ### Frontend
 - Modern UI dengan Vue 3 + Vite

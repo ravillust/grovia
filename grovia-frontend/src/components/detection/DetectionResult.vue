@@ -93,9 +93,9 @@ defineEmits(['new-detection', 'view-treatment']);
 const confidencePercentage = computed(() => {
   const confidence = props.result?.confidence;
   if (typeof confidence !== 'number' || isNaN(confidence)) {
-    return '0.0';
+    return '0';
   }
-  return (confidence * 100).toFixed(1);
+  return Math.round(confidence * 100);
 });
 
 const confidenceClass = computed(() => {

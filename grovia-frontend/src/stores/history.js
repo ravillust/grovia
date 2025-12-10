@@ -98,12 +98,6 @@ export const useHistoryStore = defineStore('history', {
           sort,
         });
 
-        console.log('History API response:', response);
-        console.log('Response data:', response.data);
-        console.log('Response data type:', typeof response.data);
-        console.log('Response data keys:', Object.keys(response.data));
-
-        // Fallback jika response tidak sesuai
         let items = [];
         let pagination = {
           current_page: 1,
@@ -114,49 +108,28 @@ export const useHistoryStore = defineStore('history', {
 
         // Handle different response structures
         if (Array.isArray(response.data)) {
-          // Response is directly an array
           items = response.data;
           pagination.total_items = items.length;
-          console.log('Response is direct array, items:', items.length);
         } else if (response.data?.items && Array.isArray(response.data.items)) {
-          // Response has items property
           items = response.data.items;
           pagination = response.data.pagination || pagination;
-          console.log('Response has items property, items:', items.length);
         } else if (response.data?.data && Array.isArray(response.data.data)) {
-          // Response wrapped in data property
           items = response.data.data;
           pagination = response.data.pagination || pagination;
-          console.log('Response wrapped in data property, items:', items.length);
         } else if (response.data?.success && response.data?.data) {
-          // Response with success flag - check if data has nested structure
-          console.log('Response has success flag, data:', response.data.data);
-          console.log('Data keys:', Object.keys(response.data.data));
-          
-          // Check for common field names
           const dataObj = response.data.data;
           if (Array.isArray(dataObj.records)) {
             items = dataObj.records;
-            console.log('Found records array, items:', items.length);
           } else if (Array.isArray(dataObj.detections)) {
             items = dataObj.detections;
-            console.log('Found detections array, items:', items.length);
           } else if (Array.isArray(dataObj.history)) {
             items = dataObj.history;
-            console.log('Found history array, items:', items.length);
           } else if (Array.isArray(dataObj.items)) {
             items = dataObj.items;
-            console.log('Found items array, items:', items.length);
           }
-          
-          pagination = dataObj.pagination || response.data.pagination || pagination;
-        } else {
-          console.warn('Unknown response structure:', response.data);
-          console.warn('All response.data properties:', response.data);
-        }
 
-        console.log('Parsed items:', items);
-        console.log('Parsed pagination:', pagination);
+          pagination = dataObj.pagination || response.data.pagination || pagination;
+        }
 
         // Append or replace items
         if (reset || page === 1) {

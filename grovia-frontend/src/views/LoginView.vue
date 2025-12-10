@@ -90,7 +90,7 @@
                 />
                 <span>Remember me</span>
               </label>
-              <a href="#" class="forgot-link">Forgot Password</a>
+              <a href="#" class="forgot-link" @click.prevent="showForgotPassword = true">Forgot Password</a>
             </div>
 
             <!-- Submit Button -->
@@ -111,16 +111,9 @@
               <span>or</span>
             </div>
 
-            <!-- Google Sign In -->
-            <button type="button" class="google-btn">
-              <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              Sign In with Google
-            </button>
+            <!-- Google Sign In Container -->
+            <!-- Google will automatically render its button here -->
+            <div id="google-signin-container" style="width: 100%;"></div>
           </form>
 
           <!-- Register Link -->
@@ -135,6 +128,92 @@
         </div>
       </div>
 
+      <!-- Forgot Password Modal -->
+      <Transition name="modal">
+        <div v-if="showForgotPassword" class="modal-overlay" @click="closeForgotPassword">
+          <div class="modal-content" @click.stop>
+            <div class="modal-header">
+              <h3 class="modal-title">Reset Password</h3>
+              <button class="modal-close" @click="closeForgotPassword">
+                <X :size="20" />
+              </button>
+            </div>
+
+            <div class="modal-body">
+              <p class="modal-description">
+                Enter your email address and we'll send you a link to reset your password.
+              </p>
+
+              <!-- Success Message -->
+              <div v-if="resetSuccess" class="success-alert">
+                <span class="alert-icon">
+                  <Check :size="18" />
+                </span>
+                <span>Password reset link has been sent to your email!</span>
+              </div>
+
+              <!-- Error Message -->
+              <div v-if="resetError" class="error-alert">
+                <span class="alert-icon">
+                  <AlertCircle :size="18" />
+                </span>
+                <span>{{ resetError }}</span>
+              </div>
+
+              <form @submit.prevent="handleForgotPassword" v-if="!resetSuccess">
+                <div class="form-group">
+                  <label for="reset-email" class="form-label">Email</label>
+                  <input
+                    id="reset-email"
+                    v-model="resetEmail"
+                    type="email"
+                    class="form-input"
+                    placeholder="Enter your email"
+                    required
+                  />
+                </div>
+
+                <div class="modal-actions">
+                  <button
+                    type="button"
+                    class="btn-secondary"
+                    @click="closeForgotPassword"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    class="btn-primary"
+                    :disabled="isResetting || !resetEmail"
+                  >
+                    <span v-if="!isResetting">Send Reset Link</span>
+                    <span v-else class="loading-text">
+                      <span class="spinner-small"></span>
+                      Sending...
+                    </span>
+                  </button>
+                </div>
+              </form>
+
+              <div v-else class="modal-actions">
+                <button class="btn-primary" @click="closeForgotPassword" style="width: 100%;">
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+
+      <!-- Reset Password Modal -->
+      <ResetPasswordModal
+        :is-open="showResetPasswordModal"
+        :token="resetToken"
+        :email="resetEmailFromUrl"
+        @close="handleResetPasswordClose"
+        @success="handleResetPasswordSuccess"
+      />
+
       <!-- Right Side - Visual/Image -->
       <div class="auth-visual">
         <div class="visual-content">
@@ -146,13 +225,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { validateEmail as validateEmailUtil } from '@/utils/validators';
 import { Leaf, Check, Mail, Lock, Eye, EyeOff, AlertCircle, X } from 'lucide-vue-next';
+import ResetPasswordModal from '@/components/common/ResetPasswordModal.vue';
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 
 // Form data
@@ -171,6 +252,22 @@ const errors = ref({
 // Show/hide password
 const showPassword = ref(false);
 
+// Forgot password state
+const showForgotPassword = ref(false);
+const resetEmail = ref('');
+const resetSuccess = ref(false);
+const resetError = ref('');
+const isResetting = ref(false);
+
+// Reset password modal state
+const showResetPasswordModal = ref(false);
+const resetToken = ref('');
+const resetEmailFromUrl = ref('');
+
+// Google Sign-In Client ID - REPLACE WITH YOUR ACTUAL CLIENT ID
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+const googleLoaded = ref(false);
+
 // Form validation
 const isFormValid = computed(() => {
   return (
@@ -180,6 +277,116 @@ const isFormValid = computed(() => {
     !errors.value.password
   );
 });
+
+/**
+ * Initialize Google Sign-In
+ */
+onMounted(() => {
+  // Check if there's a reset password token in URL
+  const token = route.query.token;
+  const email = route.query.email;
+
+  if (token && email) {
+    resetToken.value = token;
+    resetEmailFromUrl.value = email;
+    showResetPasswordModal.value = true;
+
+    // Clean URL without reloading
+    router.replace({ query: {} });
+  }
+
+  // Wait for Google script to load
+  const initGoogle = () => {
+    if (window.google && window.google.accounts) {
+      try {
+        if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
+          window.google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleGoogleSignIn,
+            auto_select: false,
+            cancel_on_tap_outside: false,
+          });
+
+          // Render button directly instead of using prompt
+          const buttonContainer = document.getElementById('google-signin-container');
+          if (buttonContainer) {
+            // Clear existing content
+            buttonContainer.innerHTML = '';
+
+            // Render Google button
+            window.google.accounts.id.renderButton(
+              buttonContainer,
+              {
+                theme: 'outline',
+                size: 'large',
+                width: buttonContainer.offsetWidth,
+                text: 'signin_with',
+                shape: 'rectangular',
+              }
+            );
+          }
+
+          googleLoaded.value = true;
+
+        } else {
+          console.warn('⚠️ Google Client ID not configured. Set VITE_GOOGLE_CLIENT_ID in .env');
+        }
+      } catch (error) {
+        console.error('❌ Error initializing Google Sign-In:', error);
+      }
+    } else {
+      // Retry after a short delay
+      setTimeout(initGoogle, 500);
+    }
+  };
+
+  initGoogle();
+});
+
+/**
+ * Handle Google Sign-In callback
+ */
+async function handleGoogleSignIn(response) {
+  try {
+
+    // Send the credential to backend
+    await authStore.googleSignIn(response.credential);
+
+    // Wait a bit for state to update
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Redirect to intended page or detection page
+    const redirect = router.currentRoute.value.query.redirect || '/detection';
+    await router.push(redirect);
+  } catch (error) {
+    console.error('Google Sign-In failed:', error);
+    errors.value.email = 'Google Sign-In failed. Please try again.';
+  }
+}
+
+/**
+ * Trigger Google Sign-In popup (fallback for custom button)
+ */
+function triggerGoogleSignIn() {
+  // Clear previous errors
+  errors.value.email = '';
+  errors.value.password = '';
+
+  if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
+    errors.value.email = '⚠️ Google Sign-In belum dikonfigurasi. Silakan login dengan email & password.';
+    console.error('Google Client ID not configured');
+    return;
+  }
+
+  if (!googleLoaded.value) {
+    errors.value.email = 'Google Sign-In sedang loading. Silakan tunggu sebentar atau refresh halaman.';
+    console.error('Google Sign-In not loaded yet');
+    return;
+  }
+
+  // Button should be auto-rendered by Google, this is just fallback
+  errors.value.email = 'Gunakan tombol Google di atas untuk login.';
+}
 
 /**
  * Validate email field
@@ -225,25 +432,70 @@ async function handleLogin() {
       password: formData.value.password,
     });
 
-    console.log('Login successful:', result);
-    console.log('Auth state:', {
-      isAuthenticated: authStore.isAuthenticated,
-      user: authStore.user,
-      token: authStore.token
-    });
 
     // Wait a bit for state to update
     await new Promise(resolve => setTimeout(resolve, 100));
 
     // Redirect to intended page or detection page
     const redirect = router.currentRoute.value.query.redirect || '/detection';
-    console.log('Redirecting to:', redirect);
 
     await router.push(redirect);
   } catch (error) {
     // Error handled by store
     console.error('Login failed:', error);
   }
+}
+
+/**
+ * Handle forgot password
+ */
+async function handleForgotPassword() {
+  if (!resetEmail.value) return;
+
+  isResetting.value = true;
+  resetError.value = '';
+  resetSuccess.value = false;
+
+  try {
+    // Panggil API forgot password
+    await authStore.forgotPassword(resetEmail.value);
+    resetSuccess.value = true;
+
+  } catch (error) {
+    resetError.value = 'Failed to send reset link. Please try again.';
+    console.error('Forgot password error:', error);
+  } finally {
+    isResetting.value = false;
+  }
+}
+
+/**
+ * Close forgot password modal
+ */
+function closeForgotPassword() {
+  showForgotPassword.value = false;
+  resetEmail.value = '';
+  resetSuccess.value = false;
+  resetError.value = '';
+}
+
+/**
+ * Handle reset password modal close
+ */
+function handleResetPasswordClose() {
+  showResetPasswordModal.value = false;
+  resetToken.value = '';
+  resetEmailFromUrl.value = '';
+}
+
+/**
+ * Handle reset password success
+ */
+function handleResetPasswordSuccess() {
+  // Modal will auto-close and user can now login
+  showResetPasswordModal.value = false;
+  resetToken.value = '';
+  resetEmailFromUrl.value = '';
 }
 </script>
 
@@ -586,6 +838,11 @@ async function handleLogin() {
   padding: 0 16px;
 }
 
+/* Google Sign-In Container */
+#google-signin-container {
+  width: 100%;
+}
+
 /* Google Button */
 .google-btn {
   width: 100%;
@@ -662,26 +919,163 @@ async function handleLogin() {
   mix-blend-mode: multiply;
 }
 
-.visual-text {
-  position: relative;
-  z-index: 2;
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 450px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 28px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.modal-body {
+  padding: 28px;
+  overflow-y: auto;
+}
+
+.modal-description {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0 0 24px 0;
+  line-height: 1.6;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btn-primary,
+.btn-secondary {
+  flex: 1;
+  padding: 11px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-primary {
+  background: #0f172a;
   color: white;
 }
 
-.visual-title {
-  font-size: 64px;
-  font-weight: 700;
-  margin: 0 0 12px 0;
-  letter-spacing: -0.04em;
-  line-height: 1;
+.btn-primary:hover:not(:disabled) {
+  background: #1e293b;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
 }
 
-.visual-subtitle {
-  font-size: 18px;
-  margin: 0;
-  opacity: 0.95;
-  font-weight: 400;
-  letter-spacing: 0.01em;
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: white;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.success-alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #dcfce7;
+  border: 1px solid #bbf7d0;
+  border-radius: 10px;
+  color: #16a34a;
+  font-size: 14px;
+  margin-bottom: 24px;
+  animation: slideDownBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Modal Transitions */
+.modal-enter-active {
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.modal-leave-active {
+  transition: all 0.2s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+.modal-enter-from .modal-content {
+  transform: scale(0.9) translateY(-20px);
+}
+
+.modal-leave-to .modal-content {
+  transform: scale(0.95) translateY(10px);
 }
 
 /* Responsive */
@@ -710,6 +1104,10 @@ async function handleLogin() {
 
   .form-title {
     font-size: 28px;
+  }
+
+  .modal-content {
+    margin: 0 16px;
   }
 }
 </style>

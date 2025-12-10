@@ -175,7 +175,7 @@
           :to="authStore.isAuthenticated ? '/detection' : '/register'"
           class="cta-button"
         >
-          Deteksi Sekarang - Gratis
+          Deteksi Sekarang
         </router-link>
       </div>
     </section>

@@ -93,8 +93,6 @@ async function fetchDetail() {
   try {
     const response = await historyAPI.getHistoryDetail(historyId.value)
 
-    console.log('API Response:', response.data) // Debug log
-
     if (response.data.success) {
       detail.value = response.data.data
     } else {

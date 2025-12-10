@@ -1,77 +1,102 @@
-# GROVIA Backend - Plant Disease Detection API
+# Grovia Backend - Plant Disease Detection API
 
-Sistem deteksi penyakit tanaman menggunakan Gemini AI dengan RAG (Retrieval-Augmented Generation) dan Leaf Validator.
+FastAPI-based backend service for plant disease detection using Google Gemini Vision API with intelligent leaf validation.
 
----
+## Features
 
-## Fitur Utama
+- **Leaf Image Validation**: OpenCV-based pre-filtering to ensure only plant images are processed
+- **AI Disease Detection**: Google Gemini 1.5 Flash for accurate disease identification (90%+ accuracy)
+- **User Authentication**: JWT-based auth with Google OAuth support
+- **Detection History**: Complete tracking of user detection records
+- **Cloud Storage**: Cloudinary integration for image management
+- **Email Services**: Password reset and verification emails
 
-### 1. Leaf Image Validator
-AI hanya merespon foto daun/tanaman. Foto non-tanaman (wajah, hewan, benda) akan ditolak dengan feedback yang jelas.
+## Tech Stack
 
-### 2. Gemini AI Detection
-Deteksi penyakit tanaman menggunakan Google Gemini 1.5 Flash dengan akurasi 90%+.
+- FastAPI 0.109.2
+- SQLAlchemy 2.0.25 (ORM)
+- MySQL/MariaDB (Database)
+- Alembic (Migrations)
+- Google Gemini AI
+- OpenCV (Image processing)
+- Cloudinary (Cloud storage)
+- JWT Authentication
 
-### 3. RAG Knowledge Base
-Sistem enhanced dengan knowledge base 10 penyakit tanaman untuk hasil yang lebih akurat dan detail.
+## Getting Started
 
-### 4. Detection History
-Tracking riwayat deteksi untuk setiap user.
+## Getting Started
 
-### 5. User Authentication
-JWT-based authentication untuk keamanan.
+### Prerequisites
 
----
+- Python 3.11+
+- MySQL/MariaDB 10.4+
+- Google Gemini API Key
 
-## Improvement Metrics
+### Installation
 
-| Metric | Before | After | Change |
-|--------|--------|-------|--------|
-| Valid Detection | 70% | **90%** | **+20%** |
-| False Positive | 30% | **5%** | **-25%** |
-| Recommendation | Basic | **Detailed** | Enhanced |
-| Knowledge Base | 0 | **10 diseases** | **+10** |
+1. **Install Dependencies**
 
----
-
-## Quick Start
-
-### 1. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-### 2. Setup Environment
-```bash
-# Copy .env.example to .env
-cp .env.example .env
+2. **Environment Configuration**
 
-# Edit .env and set:
-GEMINI_API_KEY=your_gemini_api_key
-DATABASE_URL=mysql+pymysql://root@localhost:3306/grovia_db
-SECRET_KEY=your_secret_key
+Create `.env` file:
+
+```env
+# Database
+DATABASE_URL=mysql+pymysql://root:password@localhost:3306/grovia_db
+
+# Security
+SECRET_KEY=your-secret-key-min-32-chars
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# AI
+GEMINI_API_KEY=your-gemini-api-key
+
+# Email (optional)
+MAIL_USERNAME=your-email@gmail.com
+MAIL_PASSWORD=your-app-password
+MAIL_FROM=your-email@gmail.com
+MAIL_SERVER=smtp.gmail.com
+MAIL_PORT=587
+
+# OAuth (optional)
+GOOGLE_CLIENT_ID=your-client-id
+GOOGLE_CLIENT_SECRET=your-client-secret
+
+# Storage (optional)
+USE_CLOUDINARY=true
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
 ```
 
-Get free Gemini API key: https://makersuite.google.com/app/apikey
+3. **Database Setup**
 
-### 3. Setup Database
 ```bash
+# Create database
+mysql -u root -p -e "CREATE DATABASE grovia_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+
 # Run migrations
 alembic upgrade head
 ```
 
-### 4. Start Server
+4. **Start Server**
+
 ```bash
-uvicorn app.main:app --reload
+# Development
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Production
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 ```
 
-Server akan berjalan di: http://localhost:8000
-
-API Documentation: http://localhost:8000/docs
-
----
-
-## Project Structure
+Server runs at:
+- API: http://localhost:8000
+- Docs: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
 
 ```
 grovia-backend/

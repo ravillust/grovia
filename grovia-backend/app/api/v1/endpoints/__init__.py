@@ -2,4 +2,4 @@
 """
 API endpoints package
 """
-from . import auth, detection, history, knowledge
+from . import auth, detection, history

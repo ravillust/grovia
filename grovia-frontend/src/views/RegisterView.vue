@@ -182,16 +182,9 @@
               <span>or</span>
             </div>
 
-            <!-- Google Sign In -->
-            <button type="button" class="google-btn">
-              <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-              </svg>
-              Sign Up with Google
-            </button>
+            <!-- Google Sign In Container -->
+            <!-- Google will automatically render its button here -->
+            <div id="google-signup-container" style="width: 100%;"></div>
           </form>
 
           <!-- Login Link -->
@@ -217,7 +210,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import axios from 'axios';
@@ -226,6 +219,10 @@ import { Leaf, Eye, EyeOff, AlertCircle, X } from 'lucide-vue-next';
 
 const router = useRouter();
 const authStore = useAuthStore();
+
+// Google Sign-In Client ID
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+const googleLoaded = ref(false);
 
 // Form data
 const formData = ref({
@@ -247,6 +244,98 @@ const errors = ref({
 // Show/hide passwords
 const showPassword = ref(false);
 const showPasswordConfirm = ref(false);
+
+/**
+ * Initialize Google Sign-In
+ */
+onMounted(() => {
+  // Wait for Google script to load
+  const initGoogle = () => {
+    if (window.google && window.google.accounts) {
+      try {
+        if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID !== 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
+          window.google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleGoogleSignIn,
+            auto_select: false,
+            cancel_on_tap_outside: false,
+          });
+
+          // Render button directly
+          const buttonContainer = document.getElementById('google-signup-container');
+          if (buttonContainer) {
+            buttonContainer.innerHTML = '';
+
+            window.google.accounts.id.renderButton(
+              buttonContainer,
+              {
+                theme: 'outline',
+                size: 'large',
+                width: buttonContainer.offsetWidth,
+                text: 'signup_with',
+                shape: 'rectangular',
+              }
+            );
+          }
+
+          googleLoaded.value = true;
+
+        } else {
+          console.warn('⚠️ Google Client ID not configured. Set VITE_GOOGLE_CLIENT_ID in .env');
+        }
+      } catch (error) {
+        console.error('❌ Error initializing Google Sign-In:', error);
+      }
+    } else {
+      setTimeout(initGoogle, 500);
+    }
+  };
+
+  initGoogle();
+});
+
+/**
+ * Handle Google Sign-In callback
+ */
+async function handleGoogleSignIn(response) {
+  try {
+
+    // Send the credential to backend
+    await authStore.googleSignIn(response.credential);
+
+    // Wait a bit for state to update
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Redirect to detection page
+    await router.push('/detection');
+  } catch (error) {
+    console.error('Google Sign-In failed:', error);
+    errors.value.email = 'Google Sign-In failed. Please try again.';
+  }
+}
+
+/**
+ * Trigger Google Sign-In popup (fallback)
+ */
+function triggerGoogleSignIn() {
+  errors.value.email = '';
+  errors.value.name = '';
+  errors.value.password = '';
+
+  if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com') {
+    errors.value.email = '⚠️ Google Sign-In belum dikonfigurasi. Silakan register dengan email & password.';
+    console.error('Google Client ID not configured');
+    return;
+  }
+
+  if (!googleLoaded.value) {
+    errors.value.email = 'Google Sign-In sedang loading. Silakan tunggu sebentar atau refresh halaman.';
+    console.error('Google Sign-In not loaded yet');
+    return;
+  }
+
+  errors.value.email = 'Gunakan tombol Google di atas untuk register.';
+}
 
 // Password strength
 const passwordStrength = ref({
@@ -376,7 +465,7 @@ async function handleRegister(event) {
   validatePasswordConfirmation();
 
   if (!isFormValid.value) {
-    console.log('Form validation failed');
+
     return false;
   }
 
@@ -396,42 +485,16 @@ async function handleRegister(event) {
       password: formData.value.password,
       password_confirmation: formData.value.passwordConfirmation,
     };
-    console.log('Attempting to register with:', { ...userData, password: '***', password_confirmation: '***' });
 
     const result = await authStore.register(userData);
-    console.log('Registration result:', result);
-    console.log('Auth store state after registration:', {
-      isAuthenticated: authStore.isAuthenticated,
-      hasToken: !!authStore.token,
-      hasUser: !!authStore.user,
-      token: authStore.token,
-      user: authStore.user
-    });
 
-    // Check if user is automatically logged in
-    if (authStore.isAuthenticated && authStore.token && authStore.user) {
-      // User is logged in, redirect to detection page
-      console.log('✅ User auto-logged in successfully, redirecting to detection');
-      await router.push('/detection');
-    } else {
-      // User not auto-logged in, need to login manually
-      console.log('⚠️ User not auto-logged in, backend did not return token');
-      console.log('Redirecting to login page...');
-
-      // Auto-login with the credentials
-      console.log('Attempting auto-login with provided credentials...');
-      try {
-        await authStore.login({
-          email: formData.value.email,
-          password: formData.value.password,
-        });
-        console.log('✅ Auto-login successful, redirecting to detection');
-        await router.push('/detection');
-      } catch (loginError) {
-        console.error('❌ Auto-login failed:', loginError);
-        // Fallback to login page
-        await router.push('/login');
-      }
+    // Setelah registrasi sukses, redirect ke halaman verifikasi email
+    if (result.success) {
+      await router.push({
+        name: 'verify-email',
+        query: { email: formData.value.email }
+      });
+      return;
     }
   } catch (error) {
     console.error('Registration failed:', {

@@ -61,8 +61,6 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await authAPI.login(credentials);
 
-        console.log('Login API response:', response);
-        console.log('Response data:', response.data);
 
         // Handle different response structures
         let token, user;
@@ -102,8 +100,6 @@ export const useAuthStore = defineStore('auth', {
           throw new Error('Invalid response structure');
         }
 
-        console.log('Extracted token:', token);
-        console.log('Extracted user:', user);
 
         // Store in state
         this.token = token;
@@ -113,18 +109,15 @@ export const useAuthStore = defineStore('auth', {
         localStorage.setItem('authToken', token);
         localStorage.setItem('authUser', JSON.stringify(user));
 
-        console.log('Auth state updated:', {
-          token: this.token,
-          user: this.user,
-          isAuthenticated: this.isAuthenticated
-        });
-
         return { success: true, user };
       } catch (error) {
         console.error('Login error:', error);
         console.error('Error response:', error.response);
 
-        if (error.response?.status === 401) {
+        // Tambahan: handle error verifikasi akun
+        if (error.response?.status === 403 && error.response?.data?.detail?.toLowerCase().includes('verifikasi')) {
+          this.error = 'Akun belum diverifikasi. Silakan cek email Anda untuk aktivasi.';
+        } else if (error.response?.status === 401) {
           this.error = 'Email atau password salah';
         } else if (error.response?.status === 429) {
           this.error = 'Terlalu banyak percobaan login. Coba lagi nanti.';
@@ -151,8 +144,6 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await authAPI.register(userData);
 
-        console.log('Register API response:', response);
-        console.log('Response data:', response.data);
 
         // Handle different response structures - same as login
         let token, user;
@@ -175,7 +166,6 @@ export const useAuthStore = defineStore('auth', {
 
         // Only auto-login if we have token and user
         if (token && user) {
-          console.log('Auto-login after registration');
           this.token = token;
           this.user = user;
 
@@ -183,7 +173,6 @@ export const useAuthStore = defineStore('auth', {
           localStorage.setItem('authToken', token);
           localStorage.setItem('authUser', JSON.stringify(user));
         } else {
-          console.log('Registration successful but no auto-login data');
         }
 
         return { success: true, data: response.data };
@@ -287,5 +276,65 @@ export const useAuthStore = defineStore('auth', {
       }
       return true;
     },
+
+      /**
+       * Forgot password
+       * @param {string} email
+       */
+      async forgotPassword(email) {
+        try {
+          const response = await authAPI.forgotPassword(email);
+          // Optional: handle response message
+          return response.data;
+        } catch (error) {
+          console.error('Forgot password error:', error);
+          throw error;
+        }
+      },
+
+      /**
+       * Google Sign-In
+       * @param {string} credential - Google ID token
+       */
+      async googleSignIn(credential) {
+        this.isLoading = true;
+        this.error = null;
+
+        try {
+          const response = await authAPI.googleSignIn(credential);
+
+
+          // Handle response structure
+          let token, user;
+
+          if (response.data.success && response.data.data) {
+            token = response.data.data.access_token || response.data.data.token;
+            user = response.data.data.user;
+          } else if (response.data.access_token) {
+            token = response.data.access_token;
+            user = response.data.user;
+          }
+
+          if (!token || !user) {
+            throw new Error('Invalid Google Sign-In response');
+          }
+
+          // Store auth data
+          this.token = token;
+          this.user = user;
+
+          // Persist to localStorage
+          localStorage.setItem('authToken', token);
+          localStorage.setItem('authUser', JSON.stringify(user));
+
+          return { success: true, user, token };
+        } catch (error) {
+          console.error('Google Sign-In error:', error);
+          this.error = error.response?.data?.detail || 'Google Sign-In failed';
+          throw error;
+        } finally {
+          this.isLoading = false;
+        }
+      },
   },
 });

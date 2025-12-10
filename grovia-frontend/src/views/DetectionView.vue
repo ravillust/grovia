@@ -54,7 +54,7 @@
                 :style="{ width: `${processingProgress}%` }"
               ></div>
             </div>
-            <p class="progress-text">{{ processingProgress }}%</p>
+            <p class="progress-text">{{ Math.round(processingProgress) }}%</p>
           </div>
         </div>
       </div>

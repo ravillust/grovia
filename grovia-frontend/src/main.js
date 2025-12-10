@@ -25,13 +25,9 @@ app.config.errorHandler = (err, instance, info) => {
 
 // Performance monitoring (optional)
 if (import.meta.env.DEV) {
-  // Monitor route changes performance
   router.afterEach((to, from) => {
     requestAnimationFrame(() => {
-      const perfEntries = performance.getEntriesByType('navigation');
-      if (perfEntries.length > 0) {
-        console.log('⚡ Route transition completed:', to.path);
-      }
+      performance.getEntriesByType('navigation');
     });
   });
 }

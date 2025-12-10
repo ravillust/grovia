@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc, asc, func
 from typing import List, Optional, Tuple
 import json
-from app.models.detection import DetectionHistory
+from app.models.detection_history import DetectionHistory
 from app.schemas.detection import DetectionHistoryCreate
 
 

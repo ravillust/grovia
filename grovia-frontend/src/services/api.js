@@ -186,6 +186,30 @@ export const authAPI = {
   async changePassword(passwords) {
     return apiClient.post('/auth/change-password', passwords);
   },
+    /**
+     * Forgot password
+     * @param {string} email - Email user
+     * @returns {Promise}
+     */
+    async forgotPassword(email) {
+      return apiClient.post('/auth/forgot-password', { email });
+    },
+    /**
+     * Resend verification email
+     * @param {Object} emailData - Object containing email
+     * @returns {Promise}
+     */
+    async resendVerification(emailData) {
+      return apiClient.post('/auth/resend-verification', emailData);
+    },
+    /**
+     * Google Sign-In
+     * @param {string} credential - Google ID token
+     * @returns {Promise}
+     */
+    async googleSignIn(credential) {
+      return apiClient.post('/auth/google-signin', { token: credential });
+    },
 };
 
 export const knowledgeBaseAPI = {

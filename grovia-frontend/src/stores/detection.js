@@ -91,8 +91,6 @@ export const useDetectionStore = defineStore('detection', {
         // Cleanup progress listener
         window.removeEventListener('upload-progress', progressHandler);
 
-        console.log('Detection API response:', response);
-        console.log('Response data:', response.data);
 
         // Handle different response structures
         let detectionData = response.data;
@@ -100,7 +98,6 @@ export const useDetectionStore = defineStore('detection', {
         // If response wrapped in { success: true, data: {...} }
         if (response.data.success && response.data.data) {
           detectionData = response.data.data;
-          console.log('Unwrapped data:', detectionData);
         }
 
         // Extract prediction data - could be nested
@@ -110,10 +107,8 @@ export const useDetectionStore = defineStore('detection', {
         if (predictionData && Object.keys(predictionData).length === 0) {
           // Try detection_record
           predictionData = detectionData.detection_record || detectionData;
-          console.log('Using detection_record:', predictionData);
         }
 
-        console.log('Prediction data:', predictionData);
 
         // Parse confidence - backend bisa kirim sebagai string "85.0" atau number 0.85
         let confidence = 0;
@@ -140,14 +135,6 @@ export const useDetectionStore = defineStore('detection', {
         // Extract recommendations from detection response (already included!)
         const recommendations = detectionData.recommendations || predictionData.recommendations || [];
 
-        console.log('Parsed data:', {
-          diseaseId,
-          diseaseName,
-          confidence,
-          symptoms,
-          recommendations
-        });
-
         // Store hasil deteksi
         this.detectionResult = {
           diseaseId,
@@ -160,7 +147,6 @@ export const useDetectionStore = defineStore('detection', {
           symptoms: Array.isArray(symptoms) ? symptoms : [],
         };
 
-        console.log('Detection result stored:', this.detectionResult);
 
         // Use recommendations from detection response instead of fetching separately
         if (Array.isArray(recommendations) && recommendations.length > 0) {
@@ -171,7 +157,6 @@ export const useDetectionStore = defineStore('detection', {
             chemicalSolutions: [],
             additionalTips: [],
           };
-          console.log('Treatment recommendation from detection response:', this.treatmentRecommendation);
         }
 
         // REMOVED: Auto-fetch treatment recommendation (endpoint error)
@@ -245,8 +230,6 @@ export const useDetectionStore = defineStore('detection', {
       try {
         const response = await detectionAPI.getTreatmentRecommendation(diseaseId);
 
-        console.log('Treatment API response:', response);
-        console.log('Treatment data:', response.data);
 
         // Handle different response structures
         let treatmentData = response.data;
@@ -254,51 +237,35 @@ export const useDetectionStore = defineStore('detection', {
         // If response wrapped in { success: true, data: {...} }
         if (response.data.success && response.data.data) {
           treatmentData = response.data.data;
-          console.log('Unwrapped treatment data:', treatmentData);
         }
 
-        console.log('Starting to process treatment data...');
-        console.log('treatmentData.prevention:', treatmentData.prevention);
-        console.log('treatmentData.recommendations:', treatmentData.recommendations);
-        console.log('treatmentData.treatment:', treatmentData.treatment);
 
         // Helper function to convert string to array if needed
         const ensureArray = (data) => {
-          console.log('ensureArray input:', data, 'type:', typeof data, 'isArray:', Array.isArray(data));
           if (!data) {
-            console.log('ensureArray: data is null/undefined, returning []');
             return [];
           }
           if (Array.isArray(data)) {
-            console.log('ensureArray: data is already array, returning as-is');
             return data;
           }
           if (typeof data === 'string') {
             const result = [data];
-            console.log('ensureArray: converted string to array:', result);
             return result;
           }
-          console.log('ensureArray: unknown type, returning []');
           return [];
         };
 
-        console.log('Calling ensureArray for each field...');
 
         // Backend sends different field names - handle both structures
         const prevention = ensureArray(treatmentData.prevention || treatmentData.recommendations);
-        console.log('Prevention processed:', prevention);
 
         const treatment = ensureArray(treatmentData.treatment);
-        console.log('Treatment processed:', treatment);
 
         const organicSolutions = ensureArray(treatmentData.organic_solutions || treatmentData.organicSolutions);
-        console.log('Organic solutions processed:', organicSolutions);
 
         const chemicalSolutions = ensureArray(treatmentData.chemical_solutions || treatmentData.chemicalSolutions);
-        console.log('Chemical solutions processed:', chemicalSolutions);
 
         const additionalTips = ensureArray(treatmentData.additional_tips || treatmentData.additionalTips);
-        console.log('Additional tips processed:', additionalTips);
 
         this.treatmentRecommendation = {
           prevention,
@@ -308,13 +275,10 @@ export const useDetectionStore = defineStore('detection', {
           additionalTips,
         };
 
-        console.log('Treatment recommendation stored:', this.treatmentRecommendation);
-        console.log('Treatment array check:', Array.isArray(this.treatmentRecommendation.treatment), this.treatmentRecommendation.treatment);
 
         // If detection result is empty but treatment has disease_name, use it
         if ((!this.detectionResult.diseaseName || this.detectionResult.diseaseName === 'Penyakit tidak teridentifikasi')
             && treatmentData.disease_name) {
-          console.log('Using disease name from treatment:', treatmentData.disease_name);
           this.detectionResult.diseaseName = treatmentData.disease_name;
           this.detectionResult.description = treatmentData.treatment || treatmentData.description || this.detectionResult.description;
 

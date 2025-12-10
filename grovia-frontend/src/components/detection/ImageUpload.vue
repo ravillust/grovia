@@ -71,7 +71,7 @@
       <div class="progress-bar">
         <div class="progress-fill" :style="{ width: `${uploadProgress}%` }"></div>
       </div>
-      <p class="progress-text">Mengunggah... {{ uploadProgress }}%</p>
+      <p class="progress-text">Mengunggah... {{ Math.round(uploadProgress) }}%</p>
     </div>
 
     <!-- Detect Button -->

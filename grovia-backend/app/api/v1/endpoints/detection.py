@@ -16,7 +16,6 @@ from app.dependencies import get_current_active_user, validate_image_file
 from app.models.user import User
 from app.schemas.detection import DetectionResult, TreatmentRecommendation
 from app.crud import detection as detection_crud
-from app.crud import disease as disease_crud
 from app.core.config import settings
 from app.core.exceptions import DetectionError, NotFoundError
 from app.utils.cloudinary_service import get_cloudinary_service
@@ -62,8 +61,7 @@ async def detect_disease(
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(image.file, buffer)
 
-        # STEP 1: Validate if image is a leaf/plant BEFORE detection
-        # Using OpenCV (FREE - no API usage!)
+        # Step 1: Validate if image is a leaf/plant before detection
         logger.info("Validating if image is a leaf (OpenCV)...")
         leaf_validator = get_leaf_validator()
 
@@ -83,14 +81,14 @@ async def detect_disease(
                 detail="Pastikan Anda mengupload foto daun tanaman"
             )
 
-        logger.info(f"✅ Image validated as leaf (confidence: {validation_result.get('confidence')}%)")
+        logger.info(f"[SUCCESS] Image validated as leaf (confidence: {validation_result.get('confidence')}%)")
 
         # STEP 2: Perform disease detection FIRST (before cloud upload)
         # Get ML model instance
         ml_model = get_model()
 
         # Perform detection (ML model inference)
-        logger.info("Running disease detection...")
+        logger.debug("Running disease detection...")
         prediction = ml_model.predict(file_path)
 
         if not prediction:
@@ -100,7 +98,7 @@ async def detect_disease(
                 os.remove(file_path)
             raise DetectionError("Failed to detect disease - model returned no prediction")
 
-        logger.info(f"✅ Prediction received: {prediction.get('disease_name', 'Unknown')}")
+        logger.info(f"[SUCCESS] Prediction received: {prediction.get('disease_name', 'Unknown')}")
 
         # STEP 3: Upload to cloud storage (if enabled) AFTER detection success
         image_url = f"/uploads/{filename}"  # Default: local storage
@@ -108,7 +106,7 @@ async def detect_disease(
 
         if settings.USE_CLOUDINARY:
             try:
-                logger.info("Uploading image to Cloudinary...")
+                logger.debug("Uploading image to Cloudinary...")
                 cloudinary = get_cloudinary_service()
                 upload_result = cloudinary.upload_image(
                     file_path=file_path,
@@ -117,12 +115,12 @@ async def detect_disease(
                 )
                 image_url = upload_result["url"]
                 cloudinary_public_id = upload_result["public_id"]
-                logger.info(f"✅ Image uploaded to Cloudinary: {image_url}")
+                logger.info(f"[SUCCESS] Image uploaded to Cloudinary: {image_url}")
 
                 # Delete local file after successful upload
                 if os.path.exists(file_path):
                     os.remove(file_path)
-                    logger.info("Local file deleted after cloud upload")
+                    logger.debug("Local file deleted after cloud upload")
             except Exception as e:
                 logger.warning(f"Cloudinary upload failed, using local storage: {e}")
                 # Fallback to local storage if cloud upload fails
@@ -151,6 +149,9 @@ async def detect_disease(
         # Determine detected_at in user's timezone for display (header -> profile -> default)
         local_tz = resolve_user_timezone(request, current_user)
 
+        # Get current time in local timezone (WITA)
+        current_time = datetime.now(local_tz)
+        
         response_data = {
             "success": True,
             "data": {
@@ -166,18 +167,9 @@ async def detect_disease(
                 "symptoms": prediction.get("symptoms", []),
                 "recommendations": prediction.get("recommendations", []),
                 "all_predictions": prediction.get("all_predictions", []),
-                "detected_at": datetime.utcnow().replace(tzinfo=timezone.utc).astimezone(local_tz).isoformat()
+                "detected_at": current_time.isoformat()
             }
         }
-
-        # Optional: Try to get disease details from database (don't block response)
-        try:
-            disease = disease_crud.get_disease_by_id(db, prediction["disease_id"])
-            if disease:
-                response_data["data"]["description"] = disease.description or response_data["data"]["description"]
-                logger.info(f"Enhanced with DB data: {disease.disease_name}")
-        except Exception as e:
-            logger.warning(f"Could not fetch disease from DB: {e} (using Gemini data)")
 
         # Optional: Create detection history (don't block response)
         try:
@@ -212,7 +204,7 @@ async def detect_disease(
                     logger.warning(f"Timezone conversion error: {e}")
                     # fallback to UTC string
                     response_data["data"]["detected_at"] = history.detected_at.replace(tzinfo=timezone.utc).isoformat()
-            logger.info(f"✅ History saved: ID {history.id}")
+            logger.info(f"[SUCCESS] History saved: ID {history.id}")
         except Exception as e:
             logger.error(f"Failed to save history: {e}")
             db.rollback()
@@ -268,8 +260,8 @@ async def get_treatment_recommendation(
     logger.info(f"Fetching treatment for disease: {disease_id}")
 
     try:
-        # Get treatment from database
-        treatment = disease_crud.get_treatment_recommendation(db, disease_id)
+        # Note: Currently returns generic recommendations as disease DB is not yet implemented
+        treatment = None
 
         if not treatment:
             # Return empty recommendations instead of error

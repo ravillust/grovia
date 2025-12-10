@@ -26,9 +26,9 @@ class CloudinaryService:
                 api_secret=settings.CLOUDINARY_API_SECRET,
                 secure=True
             )
-            logger.info("Cloudinary configured for production use")
+            logger.debug("Cloudinary configured for production use")
         else:
-            logger.info("Using local storage (development mode)")
+            logger.debug("Using local storage (development mode)")
 
     def upload_image(
         self,

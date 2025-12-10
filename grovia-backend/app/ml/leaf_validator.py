@@ -1,21 +1,21 @@
 """
-LEAF IMAGE VALIDATOR (OpenCV-based)
-====================================
-Memvalidasi apakah foto yang diupload adalah foto daun/tanaman
-Menggunakan OpenCV color detection - GRATIS & CEPAT!
+Leaf Image Validator using OpenCV
+==================================
+Validates whether uploaded photos are leaf/plant images.
+Uses OpenCV color detection for fast validation.
 
-FITUR:
-- ✅ Deteksi warna hijau (daun) dengan HSV color space
-- ✅ Filter foto non-tanaman (orang, benda, dll)
-- ✅ TIDAK menggunakan jatah API Gemini
-- ✅ Ultra fast validation (<100ms)
-- ✅ Akurasi 75-85% untuk filter dasar
+Features:
+- Green color detection (leaves) using HSV color space
+- Filters non-plant photos (people, objects, etc.)
+- Does not use Gemini API quota
+- Ultra fast validation (<100ms)
+- 75-85% accuracy for basic filtering
 
-ALGORITMA:
-1. Konversi ke HSV color space
-2. Deteksi pixel hijau (hue 35-85)
-3. Hitung persentase area hijau
-4. Valid jika >= 25% area hijau + texture analysis
+Algorithm:
+1. Convert to HSV color space
+2. Detect green pixels (hue 35-85)
+3. Calculate percentage of green area
+4. Valid if >= 25% green area + texture analysis
 """
 
 import cv2
@@ -32,7 +32,7 @@ class LeafImageValidator:
     
     def __init__(self):
         """Initialize validator - No API needed!"""
-        print(" Leaf Image Validator initialized (OpenCV-based, FREE!)") 
+        pass
     
     def detect_green_pixels(self, image_cv: np.ndarray) -> tuple:
         """
@@ -99,14 +99,13 @@ class LeafImageValidator:
     
     def validate(self, image_path: str) -> Dict:
         """
-        Validasi foto daun menggunakan OpenCV color detection
-        GRATIS - Tidak pakai jatah API!
+        Validate leaf photo using OpenCV color detection.
         
         Args:
-            image_path: Path ke foto yang akan divalidasi
+            image_path: Path to the photo to validate
             
         Returns:
-            Dict dengan hasil validasi
+            Dict with validation results
         """
         
         if not os.path.exists(image_path):
@@ -119,8 +118,6 @@ class LeafImageValidator:
             }
         
         try:
-            print("🔍 Validating image with OpenCV (FREE!)...")
-            
             # Load image dengan OpenCV
             image_cv = cv2.imread(image_path)
             
@@ -147,8 +144,6 @@ class LeafImageValidator:
             
             # Analisis tekstur
             texture_score = self.analyze_texture(image_cv, green_mask)
-            
-            print(f"🌿 Green area: {green_percentage:.1f}%, Texture score: {texture_score:.1f}")
             
             # DECISION LOGIC (More lenient thresholds)
             # Valid jika:
@@ -214,12 +209,9 @@ class LeafImageValidator:
                 }
             }
             
-            print(f"{'✅' if is_valid else '❌'} Validation: {reason}")
-            
             return result
                 
         except Exception as e:
-            print(f" Validation error: {e}")
             import traceback
             traceback.print_exc()
             return {
@@ -249,20 +241,14 @@ def get_leaf_validator() -> LeafImageValidator:
 if __name__ == "__main__":
     print("Testing Leaf Image Validator (OpenCV)")
     print("="*40)
-    
+
+
+if __name__ == "__main__":
+    # Simple validation test
     validator = get_leaf_validator()
-    print("Leaf Validator ready (FREE - no API needed)!")
     
-    # Test dengan sample image jika ada
     test_image = "test_leaf.jpg"
     if os.path.exists(test_image):
         result = validator.validate(test_image)
-        print("\nTest Result:")
-        print(f"Valid: {result['is_valid']}")
-        print(f"Confidence: {result['confidence']}%")
-        print(f"Reason: {result['reason']}")
-        print(f"Detected: {result['detected_content']}")
-        if result.get('debug_info'):
-            print(f"Debug: {result['debug_info']}")
-    else:
-        print("\n No test image found. Place 'test_leaf.jpg' to test.")
+        print(f"Valid: {result['is_valid']}, Confidence: {result['confidence']}%")
+

@@ -1,6 +1,5 @@
 """
-Gemini AI Model untuk Plant Disease Detection
-100% FREE & Powerful AI dari Google
+Gemini AI Model for Plant Disease Detection
 """
 import google.generativeai as genai
 from PIL import Image
@@ -10,17 +9,13 @@ from typing import Dict, Optional, List
 import json
 from pathlib import Path
 
-# Load environment variables FIRST
 from dotenv import load_dotenv
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 
 class GeminiPlantDiseaseModel:
-    """
-    Gemini AI untuk deteksi penyakit tanaman
-    Menggunakan Google Gemini Vision API - 100% GRATIS!
-    """
+    """Gemini AI for plant disease detection using Google Gemini Vision API"""
     
     def __init__(self):
         """Initialize Gemini AI Model"""
@@ -462,7 +457,7 @@ class GeminiPlantDiseaseModel:
                 return None
             
             # Load image
-            logger.info(f"📸 Loading image: {image_path}")
+            logger.debug(f"[IMAGE] Loading image: {image_path}")
             image = Image.open(image_path)
             
             # Resize jika terlalu besar (untuk efisiensi)
@@ -471,7 +466,7 @@ class GeminiPlantDiseaseModel:
                 ratio = max_size / max(image.size)
                 new_size = (int(image.width * ratio), int(image.height * ratio))
                 image = image.resize(new_size, Image.Resampling.LANCZOS)
-                logger.info(f"Resized to: {new_size}")
+                logger.debug(f"Resized to: {new_size}")
             
             # Convert to RGB if needed
             if image.mode != 'RGB':
@@ -481,7 +476,7 @@ class GeminiPlantDiseaseModel:
             prompt = self.create_detection_prompt()
             
             # Generate response from Gemini
-            logger.info(f"Analyzing with Gemini AI...")
+            logger.debug(f"Analyzing with Gemini AI...")
             response = self.model.generate_content([prompt, image])
             
             # Parse response
@@ -618,7 +613,7 @@ class GeminiPlantDiseaseModel:
             if result:
                 results.append(result)
             else:
-                logger.warning(f"⚠️ Failed to process: {image_path}")
+                logger.warning(f"[WARNING] Failed to process: {image_path}")
         
         logger.info(f"Batch complete: {len(results)}/{len(image_paths)} successful")
         
@@ -657,26 +652,24 @@ if __name__ == "__main__":
     
     try:
         model = get_gemini_model()
-        print("\n Model initialized successfully!")
+        print("\nModel initialized successfully!")
         print("Ready for plant disease detection")
-        print("100% FREE - No RAG dependency")
         
-        # Test dengan sample image jika ada
         test_image = "test_leaf.jpg"
         if os.path.exists(test_image):
-            print(f"\n Testing with: {test_image}")
+            print(f"\nTesting with: {test_image}")
             result = model.predict(test_image)
             
             if result:
-                print("\n DETECTION RESULT:")
+                print("\nDETECTION RESULT:")
                 print(f"   Disease: {result['disease_name']}")
                 print(f"   Confidence: {result['confidence_percentage']}")
                 print(f"   Severity: {result['severity']}")
                 print(f"   Recommendations: {len(result['recommendations'])} items")
         else:
-            print(f"\n⚠️ No test image found: {test_image}")
+            print(f"\n[WARNING] No test image found: {test_image}")
             
     except Exception as e:
-        print(f"\n Error: {e}")
+        print(f"\n[ERROR] Error: {e}")
         import traceback
         traceback.print_exc()

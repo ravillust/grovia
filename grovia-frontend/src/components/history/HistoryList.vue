@@ -245,10 +245,8 @@ async function handleGoToPage(page) {
 
 // Lifecycle
 onMounted(async () => {
-  console.log('HistoryList mounted, fetching history...');
   try {
     await historyStore.fetchHistory({ reset: true });
-    console.log('History fetched:', historyStore.items);
   } catch (error) {
     console.error('Error fetching history:', error);
   }
