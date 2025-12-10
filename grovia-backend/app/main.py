@@ -51,7 +51,7 @@ app = FastAPI(
 # Add CORS middleware - Allow all origins in development
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for development
+    allow_origins=["https://grovia-five.vercel.app/"],  # Allow all origins for development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
