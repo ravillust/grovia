@@ -4,30 +4,13 @@ FastAPI-based backend service for plant disease detection using Google Gemini Vi
 
 ## Features
 
-- **Leaf Image Validation**: OpenCV-based pre-filtering to ensure only plant images are processed
-- **AI Disease Detection**: Google Gemini 1.5 Flash for accurate disease identification (90%+ accuracy)
-- **User Authentication**: JWT-based auth with Google OAuth support
-- **Detection History**: Complete tracking of user detection records
-- **Cloud Storage**: Cloudinary integration for image management
-- **Email Services**: Password reset and verification emails
 
 ## Tech Stack
 
-- FastAPI 0.109.2
-- SQLAlchemy 2.0.25 (ORM)
-- MySQL/MariaDB (Database)
-- Alembic (Migrations)
-- Google Gemini AI
-- OpenCV (Image processing)
-- Cloudinary (Cloud storage)
-- JWT Authentication
 
 ## Getting Started
 
 ## Getting Started
-
-### Prerequisites
-
 - Python 3.11+
 - MySQL/MariaDB 10.4+
 - Google Gemini API Key
@@ -52,13 +35,8 @@ DATABASE_URL=mysql+pymysql://root:password@localhost:3306/grovia_db
 SECRET_KEY=your-secret-key-min-32-chars
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 
-# AI
-GEMINI_API_KEY=your-gemini-api-key
 
 # Email (optional)
-MAIL_USERNAME=your-email@gmail.com
-MAIL_PASSWORD=your-app-password
-MAIL_FROM=your-email@gmail.com
 MAIL_SERVER=smtp.gmail.com
 MAIL_PORT=587
 
