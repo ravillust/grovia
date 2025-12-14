@@ -501,11 +501,18 @@ async def google_signin(
             # New user, create account
             logger.info(f"Creating new user via Google Sign-In: {email}")
             
-            # Create user without password (Google-authenticated)
+            # -------------------------------------------------------------
+            # PERBAIKAN DI SINI:
+            # Kita buat password acak, lalu masukkan ke password DAN password_confirmation
+            # agar lolos validasi UserCreate schema.
+            # -------------------------------------------------------------
+            random_password = secrets.token_urlsafe(32)
+
             user_data = UserCreate(
                 email=email,
                 name=name,
-                password=secrets.token_urlsafe(32)  # Random password, won't be used
+                password=random_password,             # Password
+                password_confirmation=random_password # Konfirmasi Password (SAMA)
             )
             
             user = user_crud.create_user(db, user=user_data)
@@ -543,7 +550,6 @@ async def google_signin(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to sign in with Google"
         )
-
 
 @router.get("/me", response_model=dict)
 async def get_current_user_info(current_user: User = Depends(get_current_active_user)):
