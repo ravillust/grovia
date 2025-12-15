@@ -61,13 +61,13 @@ async def verify_email(token: str, email: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     if user.is_verified:
         # Sudah diverifikasi, redirect ke login dengan pesan sukses
-        return RedirectResponse(url="http://localhost:5173/login?verified=true")
+        return RedirectResponse(url="https://grovia-five.vercel.app/login?verified=true")
     # For demo, skip token check. In production, save and check token!
     user.is_verified = True
     db.commit()
     db.refresh(user)
     # Redirect ke login dengan pesan sukses
-    return RedirectResponse(url="http://localhost:5173/login?verified=true")
+    return RedirectResponse(url="https://grovia-five.vercel.app/login?verified=true")
 
 
 @router.post("/resend-verification", response_model=dict)
@@ -97,8 +97,7 @@ async def resend_verification(email_data: ForgotPasswordRequest, db: Session = D
         verify_token = secrets.token_urlsafe(32)
 
         # Build verification link
-        verify_link = f"http://localhost:8000/api/v1/auth/verify-email?token={verify_token}&email={user.email}"
-
+        verify_link = f"https://grovia-ehs7.onrender.com/api/v1/auth/verify-email?token={verify_token}&email={user.email}"
         # Send verification email
         email_body = f"""
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -167,8 +166,7 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
         verify_token = secrets.token_urlsafe(32)
 
         # Build verification link (adjust domain as needed)
-        verify_link = f"http://localhost:8000/api/v1/auth/verify-email?token={verify_token}&email={user.email}"
-
+        verify_link = f"https://grovia-ehs7.onrender.com/api/v1/auth/verify-email?token={verify_token}&email={user.email}"
         # Send verification email (tombol HTML)
         email_body = f"""
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -328,7 +326,7 @@ async def forgot_password(
         logger.info(f"[SUCCESS] Token generated and saved for user: {user.email}")
         
         # Build reset link - now points to login page with token parameters
-        reset_link = f"http://localhost:5173/login?token={reset_token}&email={user.email}"
+        reset_link = f"https://grovia-five.vercel.app/login?token={reset_token}&email={user.email}"
         
         # Send reset email
         email_body = f"""
