@@ -469,15 +469,6 @@ async function handleRegister(event) {
     return false;
   }
 
-  // Check if backend is running
-  const isBackendRunning = await axios.get('http://localhost:8000/api/v1/health-check')
-    .catch(() => false);
-
-  if (!isBackendRunning) {
-    authStore.error = 'Cannot connect to server. Please make sure the backend is running.';
-    return false;
-  }
-
   try {
     const userData = {
       name: formData.value.name,
