@@ -105,35 +105,11 @@ body {
   margin: 0 !important;
   padding: 0 !important;
 }
-html, body {
-  width: 100%;
-  height: 100%;
-  margin: 0 !important;
-  padding: 0 !important;
-  overscroll-behavior-y: none; /* Mencegah pantulan scroll */
-}
-
-#app {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  width: 100%;
-  margin: 0 !important;
-  padding: 0 !important;
-}
 
 .header-container,
 body > *:first-child,
 #app > *:first-child {
   margin-top: 0 !important;
-}
-.home-page {
-  width: 100%;
-  min-height: 100vh;
-  background-color: #6aa581; /* Warna hijau background */
-  /* Trik "Padding 1px" ini yang MENCEGAH gap putih di Desktop & Mobile */
-  padding-top: 1px; 
-  margin-top: -1px;
 }
 /* ============================================
    Typography
@@ -660,15 +636,30 @@ html {
   }
 }
 @media (max-width: 640px) {
+  /* --- 1. MEMPERBAIKI GAP PUTIH DI ATAS --- */
   
-  /* A. Fix Header Sticky */
+  /* Paksa HTML dan BODY jadi hijau di mobile. 
+     Jadi kalaupun ada celah, warnanya hijau (tidak terlihat bedanya) */
+  html, body {
+    background-color: #6aa581 !important;
+    overscroll-behavior-y: none; /* Mencegah pantulan putih di iPhone */
+  }
+
+  .home-page {
+    background-color: #6aa581;
+    min-height: 100vh;
+    padding-top: 1px; /* Trik anti-margin-collapse */
+    margin-top: -1px;
+  }
+
+  /* Header sticky di mobile */
   .home-page header {
     background-color: #6aa581 !important;
     position: sticky;
     top: 0;
     margin-top: 0 !important;
     z-index: 50;
-    box-shadow: none !important;
+    box-shadow: none !important; /* Hilangkan bayangan jika mengganggu */
   }
 
   /* B. Fix Kartu Terpotong & Scroll Samping */
