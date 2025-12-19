@@ -105,13 +105,36 @@ body {
   margin: 0 !important;
   padding: 0 !important;
 }
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+  overscroll-behavior-y: none; /* Mencegah pantulan scroll */
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+  margin: 0 !important;
+  padding: 0 !important;
+}
 
 .header-container,
 body > *:first-child,
 #app > *:first-child {
   margin-top: 0 !important;
 }
-
+.home-page {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #6aa581; /* Warna hijau background */
+  /* Trik "Padding 1px" ini yang MENCEGAH gap putih di Desktop & Mobile */
+  padding-top: 1px; 
+  margin-top: -1px;
+}
 /* ============================================
    Typography
    ============================================ */
@@ -637,69 +660,59 @@ html {
   }
 }
 @media (max-width: 640px) {
-  /* --- 1. MEMPERBAIKI GAP PUTIH DI ATAS --- */
   
-  /* Paksa HTML dan BODY jadi hijau di mobile. 
-     Jadi kalaupun ada celah, warnanya hijau (tidak terlihat bedanya) */
-  html, body {
-    background-color: #6aa581 !important;
-    overscroll-behavior-y: none; /* Mencegah pantulan putih di iPhone */
-  }
-
-  .home-page {
-    background-color: #6aa581;
-    min-height: 100vh;
-    padding-top: 1px; /* Trik anti-margin-collapse */
-    margin-top: -1px;
-  }
-
-  /* Header sticky di mobile */
+  /* A. Fix Header Sticky */
   .home-page header {
     background-color: #6aa581 !important;
     position: sticky;
     top: 0;
     margin-top: 0 !important;
     z-index: 50;
-    box-shadow: none !important; /* Hilangkan bayangan jika mengganggu */
+    box-shadow: none !important;
   }
 
-  /* --- 2. MEMPERBAIKI KONTEN TERPOTONG (CARA KERJA) --- */
-  
-  /* PENTING: Pastikan class pembungkus kartu di HTML Anda sesuai.
-     Saya menargetkan div yang kemungkinan menggunakan display: grid/flex 
-     di dalam section cara kerja.
-  */
-  
-  /* Opsi A: Jika Anda pakai Grid, kita ubah jadi Flex horizontal */
+  /* B. Fix Kartu Terpotong & Scroll Samping */
   .how-it-works-grid, 
   .steps-container,
-  div[class*="grid-cols"] { /* Menargetkan class tailwind/utility grid */
+  div[class*="grid-cols"] { 
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    gap: 1rem;
-    padding: 0 1rem 2rem 1rem; /* Kiri Kanan ada padding, Bawah untuk shadow */
-    scroll-snap-type: x mandatory;
     
-    /* Sembunyikan Scrollbar */
-    -ms-overflow-style: none;
+    /* Scroll Setting */
+    overflow-x: auto !important;
+    overflow-y: visible !important; /* Izinkan konten vertikal terlihat (angka) */
+    
+    /* --- FIX ANGKA TERPOTONG --- */
+    /* Memberi ruang kosong 3rem (48px) di atas container agar angka lingkaran masuk */
+    padding-top: 3rem !important; 
+    margin-top: -1rem !important; 
+    
+    /* Padding bawah untuk shadow, kiri kanan untuk jarak layar */
+    padding-bottom: 2rem; 
+    padding-left: 1rem;
+    padding-right: 1rem;
+    gap: 1.5rem;
+    
+    scroll-snap-type: x mandatory;
     scrollbar-width: none;
+    -ms-overflow-style: none;
   }
-  
-  /* Sembunyikan scrollbar di Chrome/Safari */
+
+  /* Sembunyikan scrollbar */
   div[class*="grid-cols"]::-webkit-scrollbar,
   .how-it-works-grid::-webkit-scrollbar {
     display: none;
   }
 
-  /* Kartu di dalam scroll area */
+  /* Kartu */
   .card, 
   .step-card,
   div[class*="grid-cols"] > div {
-    min-width: 280px !important; /* Lebar kartu fix agar bisa digeser */
+    min-width: 280px !important;
     max-width: 280px !important;
-    flex-shrink: 0 !important;   /* Jangan mengecil/gepeng */
-    scroll-snap-align: center;   /* Berhenti di tengah saat digeser */
+    flex-shrink: 0 !important;
+    scroll-snap-align: center;
+    position: relative; 
   }
 }
