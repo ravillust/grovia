@@ -637,11 +637,69 @@ html {
   }
 }
 @media (max-width: 640px) {
-  /* HEADER: Paksa nempel atas */
-  .home-page header {
+  /* --- 1. MEMPERBAIKI GAP PUTIH DI ATAS --- */
+  
+  /* Paksa HTML dan BODY jadi hijau di mobile. 
+     Jadi kalaupun ada celah, warnanya hijau (tidak terlihat bedanya) */
+  html, body {
+    background-color: #6aa581 !important;
+    overscroll-behavior-y: none; /* Mencegah pantulan putih di iPhone */
+  }
+
+  .home-page {
     background-color: #6aa581;
-    position: sticky; /* Atau absolute */
+    min-height: 100vh;
+    padding-top: 1px; /* Trik anti-margin-collapse */
+    margin-top: -1px;
+  }
+
+  /* Header sticky di mobile */
+  .home-page header {
+    background-color: #6aa581 !important;
+    position: sticky;
     top: 0;
     margin-top: 0 !important;
     z-index: 50;
+    box-shadow: none !important; /* Hilangkan bayangan jika mengganggu */
   }
+
+  /* --- 2. MEMPERBAIKI KONTEN TERPOTONG (CARA KERJA) --- */
+  
+  /* PENTING: Pastikan class pembungkus kartu di HTML Anda sesuai.
+     Saya menargetkan div yang kemungkinan menggunakan display: grid/flex 
+     di dalam section cara kerja.
+  */
+  
+  /* Opsi A: Jika Anda pakai Grid, kita ubah jadi Flex horizontal */
+  .how-it-works-grid, 
+  .steps-container,
+  div[class*="grid-cols"] { /* Menargetkan class tailwind/utility grid */
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 1rem;
+    padding: 0 1rem 2rem 1rem; /* Kiri Kanan ada padding, Bawah untuk shadow */
+    scroll-snap-type: x mandatory;
+    
+    /* Sembunyikan Scrollbar */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  /* Sembunyikan scrollbar di Chrome/Safari */
+  div[class*="grid-cols"]::-webkit-scrollbar,
+  .how-it-works-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Kartu di dalam scroll area */
+  .card, 
+  .step-card,
+  div[class*="grid-cols"] > div {
+    min-width: 280px !important; /* Lebar kartu fix agar bisa digeser */
+    max-width: 280px !important;
+    flex-shrink: 0 !important;   /* Jangan mengecil/gepeng */
+    scroll-snap-align: center;   /* Berhenti di tengah saat digeser */
+  }
+}
