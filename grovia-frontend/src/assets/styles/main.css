@@ -107,7 +107,8 @@ body {
 }
 
 .header-container,
-body > *first-child {
+body > *:first-child,
+#app > *:first-child {
   margin-top: 0 !important;
 }
 
@@ -635,36 +636,12 @@ html {
     display: none !important;
   }
 }
-
-/* ============================================
-   Fix White Gap - Homepage Only
-   ============================================ */
-
-/* Hanya untuk homepage */
-.home-page {
-  background-color: #6aa581;
-}
-
-.home-page header {
-  background: transparent;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-}
-
-.home-page .hero-section {
-  margin-top: 0;
-  padding-top: 140px; /* Sesuaikan dengan tinggi navbar */
-}
-
-/* Untuk page lain (default) */
-body:not(.home-page) {
-  background-color: #ffffff;
-}
-
-body:not(.home-page) header {
-  background: #ffffff; /* atau warna navbar yang Anda inginkan */
-  position: relative; /* navbar normal, tidak melayang */
-}
+@media (max-width: 640px) {
+  /* HEADER: Paksa nempel atas */
+  .home-page header {
+    background-color: #6aa581;
+    position: sticky; /* Atau absolute */
+    top: 0;
+    margin-top: 0 !important;
+    z-index: 50;
+  }
