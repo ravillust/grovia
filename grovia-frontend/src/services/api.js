@@ -39,24 +39,49 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('authToken');
+
+    // Debug log (hapus setelah testing)
+    console.log('🔐 Request interceptor:', {
+      url: config.url,
+      method: config.method,
+      hasToken: !!token,
+      token: token ? token.substring(0, 30) + '...' : 'null'
+    });
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('✅ Authorization header set');
+    } else {
+      console.warn('⚠️ No token found in localStorage');
     }
+
     return config;
   },
   (error) => {
+    console.error('❌ Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
 
 // Interceptor untuk handle response errors
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('✅ Response:', response.config.url, response.status);
+    return response;
+  },
   (error) => {
+    console.error('❌ Response error:', error.response?.status, error.response?.data);
+
     if (error.response?.status === 401) {
+      console.error('🚫 Unauthorized - clearing auth');
       // Token expired atau invalid
       localStorage.removeItem('authToken');
-      window.location.href = '/login';
+      localStorage.removeItem('authUser');
+
+      // Redirect to login if not already there
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
@@ -73,10 +98,18 @@ export const detectionAPI = {
     const formData = new FormData();
     formData.append('image', imageFile);
 
+    // Get token untuk memastikan ada sebelum request
+    const token = localStorage.getItem('authToken');
+    console.log('🔍 Detection request - token exists:', !!token);
+
     return apiClient.post('/detection/detect', formData, {
       timeout: DETECTION_TIMEOUT, // 60 detik untuk proses AI
       headers: {
+        // PENTING: Jangan override semua headers!
+        // Hanya set Content-Type, biarkan Authorization dari interceptor
         'Content-Type': 'multipart/form-data',
+        // Backup: tambahkan token manual (interceptor juga akan add)
+        ...(token && { 'Authorization': `Bearer ${token}` }),
       },
       // Progress tracking untuk user feedback
       onUploadProgress: (progressEvent) => {
@@ -191,30 +224,33 @@ export const authAPI = {
   async changePassword(passwords) {
     return apiClient.post('/auth/change-password', passwords);
   },
-    /**
-     * Forgot password
-     * @param {string} email - Email user
-     * @returns {Promise}
-     */
-    async forgotPassword(email) {
-      return apiClient.post('/auth/forgot-password', { email });
-    },
-    /**
-     * Resend verification email
-     * @param {Object} emailData - Object containing email
-     * @returns {Promise}
-     */
-    async resendVerification(emailData) {
-      return apiClient.post('/auth/resend-verification', emailData);
-    },
-    /**
-     * Google Sign-In
-     * @param {string} credential - Google ID token
-     * @returns {Promise}
-     */
-    async googleSignIn(credential) {
-      return apiClient.post('/auth/google-signin', { token: credential });
-    },
+
+  /**
+   * Forgot password
+   * @param {string} email - Email user
+   * @returns {Promise}
+   */
+  async forgotPassword(email) {
+    return apiClient.post('/auth/forgot-password', { email });
+  },
+
+  /**
+   * Resend verification email
+   * @param {Object} emailData - Object containing email
+   * @returns {Promise}
+   */
+  async resendVerification(emailData) {
+    return apiClient.post('/auth/resend-verification', emailData);
+  },
+
+  /**
+   * Google Sign-In
+   * @param {string} credential - Google ID token
+   * @returns {Promise}
+   */
+  async googleSignIn(credential) {
+    return apiClient.post('/auth/google-signin', { token: credential });
+  },
 };
 
 export const knowledgeBaseAPI = {
