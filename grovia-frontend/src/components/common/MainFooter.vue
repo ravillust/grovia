@@ -47,7 +47,7 @@
           <h4 class="footer-title">Legal</h4>
           <ul class="footer-links">
             <li>
-              <router-link to="/privacy" class="footer-link">Privasi</router-link>
+              <router-link to="/privacy-policy" class="footer-link">Privasi</router-link>
             </li>
             <li>
               <router-link to="/terms" class="footer-link">Syarat</router-link>

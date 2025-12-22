@@ -159,7 +159,7 @@
                 />
                 <span>
                   I agree to the
-                  <a href="#" class="terms-link">Terms & Conditions</a>
+                  <router-link to="/terms" class="terms-link">Terms & Conditions</router-link>
                 </span>
               </label>
             </div>
