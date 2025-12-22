@@ -36,9 +36,6 @@
             <li>
               <router-link to="/" class="footer-link">Tentang Kami</router-link>
             </li>
-            <li>
-              <router-link to="/" class="footer-link">Blog</router-link>
-            </li>
           </ul>
         </div>
 

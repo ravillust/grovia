@@ -193,7 +193,7 @@ function handleScroll() {
 
 // Check if current route needs dark navbar
 function shouldUseDarkNavbar() {
-  const whiteBackgroundPages = ['/detection', '/history'];
+  const whiteBackgroundPages = ['/detection', '/history', '/terms'];
   return whiteBackgroundPages.includes(route.path);
 }
 
